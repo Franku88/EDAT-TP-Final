@@ -1,8 +1,10 @@
 package sistema;
+import java.util.HashMap;
+
 public class MudanzasCompartidas {
     
     public static void main(String[] args) {
-        
+        HashMap<> clientes = new Hash;
         opciones();
     }
 
