@@ -4,8 +4,10 @@ import java.util.HashMap;
 public class MudanzasCompartidas {
     
     public static void main(String[] args) {
-        HashMap<> clientes = new Hash;
+        
+        //Quedé en solicitud.java
         opciones();
+
     }
 
     public static void opciones() {
