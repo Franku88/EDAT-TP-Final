@@ -1,14 +1,14 @@
 package sistema;
 
 public class Cliente {
-    private String tipoDoc;
-    private int numeroDoc;
+    private String tipoDoc; //Clave
+    private String numeroDoc; //Clave
     private String nombre;
     private String apellido;
     private String telefono;
     private String email;
 
-    public Cliente(String tDoc, int nDoc, String nom, String ape) {
+    public Cliente(String tDoc, String nDoc, String nom, String ape) {
         this.tipoDoc = tDoc;
         this.numeroDoc = nDoc;
         this.nombre = nom;
@@ -17,7 +17,16 @@ public class Cliente {
         this.email = "Sin email";
     }
 
-    public Cliente(String tDoc, int nDoc, String nom, String ape, String tel, String ema) {
+    public Cliente(String tDoc, String nDoc, String nom, String ape, String tel) {
+        this.tipoDoc = tDoc;
+        this.numeroDoc = nDoc;
+        this.nombre = nom;
+        this.apellido = ape;
+        this.telefono = tel;
+        this.email = "Sin email";
+    }
+
+    public Cliente(String tDoc, String nDoc, String nom, String ape, String tel, String ema) {
         this.tipoDoc = tDoc;
         this.numeroDoc = nDoc;
         this.nombre = nom;
@@ -30,7 +39,7 @@ public class Cliente {
         return this.tipoDoc;
     }
     
-    public int getNumeroDoc() {
+    public String getNumeroDoc() {
         return this.numeroDoc;
     }
 
@@ -64,5 +73,14 @@ public class Cliente {
 
     public void setEmail(String ema) {
         this.email = ema;
+    }
+
+    public String toString(){
+        return "Tipo Doc: "+this.tipoDoc+
+        " | Num Doc: "+this.numeroDoc+
+        " | Nombre/s: "+this.nombre+
+        " | Apellido/s: "+this.apellido+
+        " | Telefono: "+this.telefono+
+        " | E-mail: "+this.email;
     }
 }
