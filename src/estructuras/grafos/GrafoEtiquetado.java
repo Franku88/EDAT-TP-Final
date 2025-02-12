@@ -418,7 +418,7 @@ public class GrafoEtiquetado {
         ret = "+ ("+nodo.getElemento()+"): \n       "; //Concatena vertice
         if (ady != null) { //Concatena todos sus adyacentes
             while (ady != null){
-                ret = ret + "->  "+ady.getVertice().getElemento()+": "+ady.getEtiqueta()+"\n       ";
+                ret = ret + "->  ("+ady.getVertice().getElemento()+"): "+ady.getEtiqueta()+"\n       ";
                 ady = ady.getSigAdyacente();
             }
         } else {

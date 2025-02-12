@@ -1,4 +1,5 @@
 package estructuras.diccionario;
+
 import estructuras.lineales.Lista; //Usado en métodos de listado
 @SuppressWarnings({"rawtypes", "unchecked"})
 
@@ -11,7 +12,7 @@ public class Diccionario {
     }
 
     public boolean insertar(Comparable clave, Object dato) {
-        //Inserta un elem con clave y dato, conservando el orden de el arbol 
+        //Inserta un elem con clave y dato, conservando el orden del arbol 
         boolean exito = true;
         if (this.esVacio()) {
             this.raiz = new NodoAVLDicc(clave, dato);
@@ -210,7 +211,6 @@ public class Diccionario {
 
     private void balancear(NodoAVLDicc nodo, NodoAVLDicc padre) {
         /*Metodo aux que balancea el nodo con 4 casos
-        balance: variable con el balance de nodo
         padre: es el padre de nodo, usado para asignar a su hijo desbalanceado una vez termine el proceso
         precondicion: nodo no es vacio y balance es 2 o -2*/
         NodoAVLDicc aux;
@@ -255,7 +255,7 @@ public class Diccionario {
         }
     }
 
-    public NodoAVLDicc rotarIzquierda(NodoAVLDicc pivote) {
+    private NodoAVLDicc rotarIzquierda(NodoAVLDicc pivote) {
         //Guardo hijo derecho del pivote
         NodoAVLDicc hD = pivote.getDerecho();
         //Guardo hijo izquierdo del hijo derecho
@@ -271,7 +271,7 @@ public class Diccionario {
         return hD;
     }
 
-    public NodoAVLDicc rotarDerecha(NodoAVLDicc pivote) {
+    private NodoAVLDicc rotarDerecha(NodoAVLDicc pivote) {
         //Guardo hijo izquierdo del pivote
         NodoAVLDicc hI = pivote.getIzquierdo();
         //Guardo hijo derecho del hijo izquierdo
@@ -293,7 +293,7 @@ public class Diccionario {
         return obtenerDatoAux(this.raiz, clave);
     }
 
-    public Object obtenerDatoAux(NodoAVLDicc nodo, Comparable clave) {
+    private Object obtenerDatoAux(NodoAVLDicc nodo, Comparable clave) {
         //Metodo auxiliar que busca nodo con clave y retorna su dato
         Object dato;
         if (nodo != null) { //Si nodo no es nulo
@@ -303,9 +303,9 @@ public class Diccionario {
                 dato = nodo.getDato();
             } else {
                 if (comparacion < 0) { //Si clave es menor al claveNodo, busco en subArbol izq
-                    dato = existeClaveAux(nodo.getIzquierdo(), clave);
+                    dato = obtenerDatoAux(nodo.getIzquierdo(), clave);
                 } else { //Si clave es mayor a al claveNodo, busco en subArbol der
-                    dato = existeClaveAux(nodo.getDerecho(), clave);
+                    dato = obtenerDatoAux(nodo.getDerecho(), clave);
                 }
             }
         } else { //Si nodo es nulo, no se encuentra clave
@@ -391,11 +391,11 @@ public class Diccionario {
             NodoAVLDicc izq = nodo.getIzquierdo(); 
             NodoAVLDicc der = nodo.getDerecho();
             //Concateno clave del nodo
-            cad = cad +"("+ nodo.getClave() + ")("+nodo.getDato()+") ->  ";
+            cad = cad +"("+nodo.getAltura()+") | ("+ nodo.getClave() + ")("+nodo.getDato()+") ->  \n";
             if (izq != null) { //Si tiene HI, lo concateno
-                cad = cad + "HI: " + izq.getClave() + "    ";
+                cad = cad + "HI: " + izq.getClave() + "  ";
             } else {
-                cad = cad + "HI: -    ";
+                cad = cad + "HI: -  ";
             }
             if (der != null) { //Si tiene HD, lo concateno
                 cad = cad + "HD: " + der.getClave() + "\n";

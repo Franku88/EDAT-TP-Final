@@ -1,11 +1,5 @@
 package estructuras.lineales;
 
-/************* Autores ***********
-- Franco Fabian Benitez, Legajo FAI-3169
-* Jamiro Zuñiga, Legajo FAI-3429
-* Agustín Ezequiel Heredia, Legajo FAI-2876
-*/
-
 public class Nodo {
     
     private Object elemento;

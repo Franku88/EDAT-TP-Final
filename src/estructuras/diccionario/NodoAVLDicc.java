@@ -25,7 +25,6 @@ public class NodoAVLDicc {
         this.recalcularAltura();
     }
 
-
     public Comparable getClave() {
         return this.clave;
     }

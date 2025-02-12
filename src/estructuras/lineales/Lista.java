@@ -1,11 +1,5 @@
 package estructuras.lineales;
 
-/************* Autores ***********
-- Franco Fabian Benitez, Legajo FAI-3169
-* Jamiro Zuñiga, Legajo FAI-3429
-* Agustín Ezequiel Heredia, Legajo FAI-2876
-*/
-
 public class Lista {
 
     private Nodo cabecera;
@@ -148,9 +142,9 @@ public class Lista {
     public String toString() {
         String cad;
         if (!this.esVacia()) {
-            cad = "|"+toStringR(this.cabecera);
+            cad = "{"+toStringR(this.cabecera);
         } else {
-            cad = "||";
+            cad = "{}";
         }
         return cad;
     }
@@ -160,9 +154,9 @@ public class Lista {
         al elemento de su enlace*/
         String cad;
         if (nodo.getEnlace() == null) {//Si el nodo ingresado en null, entonces es el fin de la lista
-            cad = nodo.getElemento()+"|";
+            cad = nodo.getElemento()+"}";
         } else {
-            cad = nodo.getElemento()+","+ toStringR(nodo.getEnlace());
+            cad = nodo.getElemento()+", "+ toStringR(nodo.getEnlace());
         }
         return cad;
     }
