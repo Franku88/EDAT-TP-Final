@@ -13,8 +13,8 @@ public class Cliente {
         this.numeroDoc = nDoc;
         this.nombre = nom;
         this.apellido = ape;
-        this.telefono = "Sin telefono";
-        this.email = "Sin email";
+        this.telefono = "";
+        this.email = "";
     }
 
     public Cliente(String tDoc, String nDoc, String nom, String ape, String tel) {
@@ -23,7 +23,7 @@ public class Cliente {
         this.nombre = nom;
         this.apellido = ape;
         this.telefono = tel;
-        this.email = "Sin email";
+        this.email = "";
     }
 
     public Cliente(String tDoc, String nDoc, String nom, String ape, String tel, String ema) {
