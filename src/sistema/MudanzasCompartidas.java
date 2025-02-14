@@ -11,7 +11,7 @@ import estructuras.mapeo.MapeoAMuchos;
 import estructuras.lineales.Lista;
 
 public class MudanzasCompartidas {
-    // Quedé en modificarRuta de ABMRutas
+    // Quedé en modificarCliente de ABMClientes
     private static final Scanner sc = new Scanner(System.in);
     private static final DataIO io = new DataIO(); // Objeto para la entrada y salida de datos
     private static Diccionario ciudades = new Diccionario(); // Informacion sobre ciudades, cada ciudad almacena su lista de solicitudes
@@ -468,11 +468,75 @@ public class MudanzasCompartidas {
 
     public static void modificarRuta() {
         // En este caso, se puede modificar etiqueta (kms)
-        
-        
+        int primerCodPostal = -1;
+        int segundoCodPostal = -1;
+        double kms = -1;
+        boolean existe = false;
+
         System.out.println("<----------- Modificando Ruta --------->");
-        
-                
+        System.out.println("Se le solicitará: Códigos postales de dos ciudades cargadas, las cuales tengan una ruta en comun.");
+        do {
+            System.out.print("Ingrese el primer código postal (4 dígitos): ");
+            primerCodPostal = sc.nextInt();
+            sc.nextLine();
+            if (primerCodPostal >= 0) {
+                existe = ciudades.existeClave(primerCodPostal);
+                if (existe) {
+                    existe = false;
+                    do {
+                        System.out.print("Ingrese el segundo código postal (4 dígitos): ");
+                        segundoCodPostal = sc.nextInt();
+                        sc.nextLine();
+                        if (segundoCodPostal >= 0 && segundoCodPostal != primerCodPostal) { //Deben ser diferentes
+                            existe = ciudades.existeClave(segundoCodPostal);
+                            if (existe) {
+                                if (mapa.existeArco(primerCodPostal, segundoCodPostal)) {
+                                    do {
+                                        System.out.print("Ingrese la nueva distancia en kilometros de la ruta (ej: 10.2): ");
+                                        kms = sc.nextDouble();
+                                        sc.nextLine();
+                                        existe = kms > 0;
+                                        if (existe) {
+                                            System.out.print("¿Esta seguro? Puede verificar la ruta a modificar visualizando el mapa (S/N): ");
+                                            switch (sc.next().toUpperCase().charAt(0)) {
+                                                case 'S':
+                                                    if (mapa.eliminarArco(primerCodPostal, segundoCodPostal)) {
+                                                        if (mapa.insertarArco(primerCodPostal, segundoCodPostal, kms)) {
+                                                            io.escribir("RUTA MODIFICADA: ("+primerCodPostal+") <--- "+kms+" km --->  ("+segundoCodPostal+")");
+                                                            System.out.println("Ruta modificada con éxito.");
+                                                        } else {
+                                                            io.escribir("ERROR AL INSERTAR RUTA.");
+                                                        }
+                                                    } else {
+                                                        io.escribir("ERROR AL ELIMINAR RUTA.");
+                                                    }
+                                                    break;
+                                                default:
+                                                    System.out.println("Operación cancelada.");
+                                                    break;
+                                            }
+                                        } else {
+                                            System.out.println("La distancia debe ser positiva.");
+                                        }
+                                    } while (!existe);
+
+                                } else {
+                                    System.out.println("No existe ruta entre las ciudades dadas.");
+                                }
+                            } else { 
+                                System.out.println("El codigo ingresado no se encuentra registrado.");
+                            }
+                        } else {
+                            System.out.println("El codigo ingresado debe ser positivo y diferente al anterior ingresado.");
+                        }
+                    } while (!existe);
+                } else {
+                    System.out.println("El codigo ingresado no se encuentra registrado.");
+                }
+            } else {
+                System.out.println("El codigo ingresado debe ser positivo.");
+            }
+        } while (!existe);
     }
 
     public static void mostrarRutas() {
@@ -482,7 +546,186 @@ public class MudanzasCompartidas {
     }
 
     public static void ABMClientes() {
-        System.out.println("CLIENTES");
+        int opcion = 0;
+        do {
+            System.out.println("---------------- Clientes ----------------");
+            System.out.println("    1. Cargar Cliente");
+            System.out.println("    2. Eliminar Cliente");
+            System.out.println("    3. Modificar Cliente");
+            System.out.println("--------------------------------------");
+            System.out.println("    4. Mostrar Clientes");
+            System.out.println("--------------------------------------");
+            System.out.println("    0. Atras");
+            System.out.println("--------------------------------------");
+            System.out.print("Ingrese una opción: ");
+            opcion = sc.nextInt();
+            clearTerminal();
+            switch (opcion) {
+                case 0:
+                    // No realiza nada y corta la iteracion
+                    break;
+                case 1:
+                    cargarCliente();
+                    break;
+                case 2:
+                    eliminarCliente();
+                    break;
+                case 3:
+                    modificarCliente();
+                    break;
+                case 4:
+                    mostrarClientes();
+                    break;
+                default:
+                    System.out.println("Valor ingresado no es válido.");
+                    break;
+            }
+        } while (opcion != 0);
+    }
+
+    public static void cargarCliente() {
+        String tipoDoc = "";
+        int nroDoc = -1;
+        int opcion = 0;
+        String nombreCliente = "";
+        String apellidoCliente = "";
+        String telefono = "";
+        String correo = "";
+        boolean flag = false; // Decide si sigue la operacion o si se repite la entrada de datos
+
+        System.out.println("<----------- Cargando Cliente --------->");
+        System.out.println("Se le solicitará: Tipo de Documento, Numero de Documento, Nombre/s, Apellido/s, Telefono (opcional), E-mail (opcional)");
+        
+        System.out.println("------------ Tipos de Documento ------------");
+        System.out.println("    1. Documento Nacional de Identidad");
+        System.out.println("    2. Pasaporte");
+        do {
+            System.out.print("Ingrese el tipo de documento: ");
+            opcion = sc.nextInt();
+            sc.nextLine();
+            flag = opcion > 0 && opcion < 3;
+            if (flag) {
+                switch (opcion) {
+                    case 1:
+                        tipoDoc = "DNI";
+                        break;
+                    case 2:
+                        tipoDoc = "PAS";
+                        break;
+                }
+                do {
+                    System.out.print("Ingrese el numero de documento: ");
+                    nroDoc = sc.nextInt();
+                    sc.nextLine();
+                    flag = nroDoc > 0;
+                    if (flag) {
+                        if (!clientes.containsKey(tipoDoc+""+nroDoc)) {
+                            System.out.print("Ingrese nombre/s del cliente (Separados por espacios): ");
+                            nombreCliente = sc.nextLine().trim();
+
+                            System.out.print("Ingrese apellido/s del cliente (Separados por espacios): ");
+                            apellidoCliente = sc.nextLine().trim();
+
+                            System.out.print("Ingrese telefono del cliente (Enter para omitir): ");
+                            telefono = sc.nextLine().trim();
+
+                            System.out.print("Ingrese correo electrónico del cliente (Enter para omitir): ");
+                            correo = sc.nextLine().trim();
+
+                            Cliente nuevoCliente = new Cliente(tipoDoc, nroDoc+"", nombreCliente, apellidoCliente, telefono, correo);
+                            clientes.put((tipoDoc+""+nroDoc), nuevoCliente);
+                            System.out.println("Cliente cargado: "+ nuevoCliente.toString());
+                            io.escribir("CLIENTE CARGADO: "+nuevoCliente.toString());
+                        } else {
+                            System.out.println("Ya existe un cliente con tipo y numero de documento ingresados. Volviendo al menu...");                            
+                        }
+                    } else {
+                        System.out.println("El numero ingresado debe ser positivo.");
+                    }
+                } while (!flag);
+            } else {
+                System.out.println("Opcion inválida.");
+            }            
+        } while (!flag);
+    }
+
+    public static void eliminarCliente() {
+        String tipoDoc = "";
+        int nroDoc = -1;
+        int opcion = 0;
+        boolean flag = false; // Decide si sigue la operacion o si se repite la entrada de datos
+
+        System.out.println("<----------- Eliminando Cliente --------->");
+        System.out.println("Se le solicitará: Tipo de Documento, Numero de Documento");
+        
+        System.out.println("------------ Tipos de Documento ------------");
+        System.out.println("    1. Documento Nacional de Identidad");
+        System.out.println("    2. Pasaporte");
+        do {
+            System.out.print("Ingrese el tipo de documento: ");
+            opcion = sc.nextInt();
+            sc.nextLine();
+            flag = opcion > 0 && opcion < 3;
+            if (flag) {
+                switch (opcion) {
+                    case 1:
+                        tipoDoc = "DNI";
+                        break;
+                    case 2:
+                        tipoDoc = "PAS";
+                        break;
+                }
+                do {
+                    System.out.print("Ingrese el numero de documento: ");
+                    nroDoc = sc.nextInt();
+                    sc.nextLine();
+                    flag = nroDoc > 0;
+                    if (flag) {                        
+                        if (clientes.containsKey(tipoDoc+""+nroDoc)) {
+                            Cliente unCliente = clientes.get(tipoDoc+""+nroDoc);
+                            System.out.println("Cliente a eliminar: "+unCliente.toString());
+                            System.out.print("¿Esta seguro que desea eliminarlo? Se eliminaran todas sus solicitudes (S/N): ");
+                                switch (sc.next().toUpperCase().charAt(0)) {
+                                    case 'S':
+                                        eliminarSolicitudesConCliente(tipoDoc+""+nroDoc);
+                                        clientes.remove(tipoDoc+""+nroDoc);
+                                        io.escribir("CLIENTE ELIMINADO: "+unCliente.toString());
+                                        System.out.println("Cliente eliminado con éxito.");
+                                        break;
+                                    default:
+                                        System.out.println("Operación cancelada.");
+                                        break;
+                                }
+                        } else {
+                            System.out.println("No existe un cliente con tipo y numero de documento ingresados. Volviendo al menu...");                            
+                        }
+                    } else {
+                        System.out.println("El numero ingresado debe ser positivo.");
+                    }
+                } while (!flag);
+            } else {
+                System.out.println("Opcion inválida.");
+            }            
+        } while (!flag);
+        
+    }
+
+    public static void eliminarSolicitudesConCliente(String idCliente) {
+        // Elimina toda solicitud (lista de solicitudes) cuando cliente con idCliente (tipoDoc+nroDoc) sea duenio de la solicitud
+        Lista rangos = solicitudes.obtenerConjuntoRango(); //Obtiene conjunto rango
+        int cantRangos = rangos.longitud();
+        Solicitud unRango = null; //Cada rango es una solicitud
+        for (int i = 1; i <= cantRangos; i++) { 
+            unRango = (Solicitud) rangos.recuperar(i); // Obtiene un rango
+            if (unRango.getTipoDoc()+""+unRango.getNumeroDoc() == idCliente) { // Si el rango tiene idCliente (tipoDoc+nroDoc)
+                io.escribir("SOLICITUD ELIMINADA: "+ unRango.toString());
+                solicitudes.desasociar(unRango.getOrigen()+""+unRango.getDestino(), unRango); // Elimina dicho rango (solicitud)
+            }
+        }
+    }
+
+    public static void modificarCliente() {
+        //ACA QUEDE
     }
 
     public static void mostrarClientes() {
