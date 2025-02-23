@@ -11,7 +11,7 @@ import estructuras.mapeo.MapeoAMuchos;
 import estructuras.lineales.Lista;
 
 public class MudanzasCompartidas {
-    // Quedé en modificarCliente de ABMClientes
+    //Iniciando ABMSolicitudes
     private static final Scanner sc = new Scanner(System.in);
     private static final DataIO io = new DataIO(); // Objeto para la entrada y salida de datos
     private static Diccionario ciudades = new Diccionario(); // Informacion sobre ciudades, cada ciudad almacena su lista de solicitudes
@@ -654,42 +654,50 @@ public class MudanzasCompartidas {
         int nroDoc = -1;
         int opcion = 0;
         boolean flag = false; // Decide si sigue la operacion o si se repite la entrada de datos
-
-        System.out.println("<----------- Eliminando Cliente --------->");
-        System.out.println("Se le solicitará: Tipo de Documento, Numero de Documento");
-        
-        System.out.println("------------ Tipos de Documento ------------");
-        System.out.println("    1. Documento Nacional de Identidad");
-        System.out.println("    2. Pasaporte");
+        Cliente cli = null;
         do {
+            clearTerminal();
+            System.out.println("<----------- Eliminando Cliente --------->");
+            System.out.println("Se le solicitará: Tipo de Documento, Numero de Documento");
+            
+            System.out.println("------------ Tipos de Documento ------------");
+            System.out.println("    0. Salir");
+            System.out.println("    1. Documento Nacional de Identidad");
+            System.out.println("    2. Pasaporte");
             System.out.print("Ingrese el tipo de documento: ");
             opcion = sc.nextInt();
             sc.nextLine();
-            flag = opcion > 0 && opcion < 3;
+            switch (opcion) {
+                case 0:
+                    tipoDoc = "";
+                    break;
+                case 1:
+                    tipoDoc = "DNI";
+                    break;
+                case 2:
+                    tipoDoc = "PAS";
+                    break;
+                default:
+                    tipoDoc = "";
+                    break;
+            }
+            flag = tipoDoc != "";
             if (flag) {
-                switch (opcion) {
-                    case 1:
-                        tipoDoc = "DNI";
-                        break;
-                    case 2:
-                        tipoDoc = "PAS";
-                        break;
-                }
+                System.out.println("Ingrese un número menor o igual a 0 para cancelar esta operación.");
                 do {
-                    System.out.print("Ingrese el numero de documento: ");
+                    System.out.print("Ingrese el número de documento: ");
                     nroDoc = sc.nextInt();
                     sc.nextLine();
-                    flag = nroDoc > 0;
-                    if (flag) {                        
-                        if (clientes.containsKey(tipoDoc+""+nroDoc)) {
-                            Cliente unCliente = clientes.get(tipoDoc+""+nroDoc);
-                            System.out.println("Cliente a eliminar: "+unCliente.toString());
+                    if (nroDoc > 0) {
+                        cli = clientes.get(tipoDoc+""+nroDoc);
+                        if (cli != null) {
+                            System.out.println("Cliente a eliminar: "+cli.toString());
                             System.out.print("¿Esta seguro que desea eliminarlo? Se eliminaran todas sus solicitudes (S/N): ");
                                 switch (sc.next().toUpperCase().charAt(0)) {
                                     case 'S':
                                         eliminarSolicitudesConCliente(tipoDoc+""+nroDoc);
                                         clientes.remove(tipoDoc+""+nroDoc);
-                                        io.escribir("CLIENTE ELIMINADO: "+unCliente.toString());
+                                        io.escribir("CLIENTE ELIMINADO: "+cli.toString());
                                         System.out.println("Cliente eliminado con éxito.");
                                         break;
                                     default:
@@ -697,17 +705,18 @@ public class MudanzasCompartidas {
                                         break;
                                 }
                         } else {
-                            System.out.println("No existe un cliente con tipo y numero de documento ingresados. Volviendo al menu...");                            
+                            System.out.println("No existe un cliente con tipo y numero de documento ingresados.");
                         }
                     } else {
-                        System.out.println("El numero ingresado debe ser positivo.");
+                        System.out.println("Operación cancelada.");
                     }
-                } while (!flag);
+                } while (nroDoc > 0 && cli == null);
             } else {
-                System.out.println("Opcion inválida.");
-            }            
-        } while (!flag);
-        
+                if (opcion != 0) {
+                    System.out.println("Opcion inválida.");
+                }
+            }         
+        } while (!flag && opcion != 0);
     }
 
     public static void eliminarSolicitudesConCliente(String idCliente) {
@@ -717,7 +726,7 @@ public class MudanzasCompartidas {
         Solicitud unRango = null; //Cada rango es una solicitud
         for (int i = 1; i <= cantRangos; i++) { 
             unRango = (Solicitud) rangos.recuperar(i); // Obtiene un rango
-            if (unRango.getTipoDoc()+""+unRango.getNumeroDoc() == idCliente) { // Si el rango tiene idCliente (tipoDoc+nroDoc)
+            if ((unRango.getTipoDoc()+""+unRango.getNumeroDoc()).compareTo(idCliente) == 0) { // Si el rango tiene idCliente (tipoDoc+nroDoc)
                 io.escribir("SOLICITUD ELIMINADA: "+ unRango.toString());
                 solicitudes.desasociar(unRango.getOrigen()+""+unRango.getDestino(), unRango); // Elimina dicho rango (solicitud)
             }
@@ -725,7 +734,112 @@ public class MudanzasCompartidas {
     }
 
     public static void modificarCliente() {
-        //ACA QUEDE
+        // En este caso, se puede modificar nombres, apellidos, telefono y correo
+        int nroDoc = -1;
+        int opcion = -1;
+        String tipoDoc = "";
+        boolean flag = false;
+        Cliente cli = null;
+        System.out.println("<----------- Modificando Cliente --------->");
+        System.out.println("Se le solicitará: Tipo y Numero de documento de un cliente cargado.");
+
+        System.out.println("------------ Tipos de Documento ------------");
+        System.out.println("    0. Salir");
+        System.out.println("    1. Documento Nacional de Identidad");
+        System.out.println("    2. Pasaporte");
+        do {
+            System.out.print("Ingrese el tipo de documento: ");
+            opcion = sc.nextInt();
+            sc.nextLine();
+            switch (opcion) {
+                case 0:
+                    tipoDoc = "";
+                    break;
+                case 1:
+                    tipoDoc = "DNI";
+                    break;
+                case 2:
+                    tipoDoc = "PAS";
+                    break;
+                default:
+                    tipoDoc = "";
+                    break;
+            }
+            flag = tipoDoc != "";
+            if (flag) {
+                System.out.println("Ingrese un numero menor o igual a 0 para cancelar esta operación.");
+                do {
+                    System.out.print("Ingrese el número de documento: ");
+                    nroDoc = sc.nextInt();
+                    sc.nextLine();
+                    if (nroDoc > 0) {
+                        cli = (Cliente) clientes.get(tipoDoc+""+nroDoc); // Obtiene objeto cliente
+                        if (cli != null) {
+                            String prevData = cli.toString();
+                            String laterData = prevData;
+                            opcion = 0;                            
+                            do {
+                                clearTerminal();
+                                System.out.println("-------- Modificando: "+cli.getTipoDoc()+""+cli.getNumeroDoc()+" --------");
+                                System.out.println("    1. Nombre/s: "+cli.getNombre());
+                                System.out.println("    2. Apellido/s: "+cli.getApellido());
+                                System.out.println("    3. Telefono: "+cli.getTelefono());
+                                System.out.println("    4. Correo: "+cli.getEmail());
+                                System.out.println("--------------------------------------");
+                                System.out.println("    0. Listo");
+                                System.out.println("--------------------------------------");
+                                System.out.print("¿Que dato desea modificar?: ");
+                                opcion = sc.nextInt();
+                                sc.nextLine();
+                                switch (opcion) {
+                                    case 0:
+                                        //No realiza accion y vuelve al menu anterior
+                                        break;
+                                    case 1:
+                                        System.out.print("Ingrese nuevo/s nombre/s (Actual: "+cli.getNombre()+"): ");
+                                        cli.setNombre(sc.nextLine().trim());
+                                        System.out.println("Nombre modificado.");
+                                        break;
+                                    case 2:
+                                        System.out.print("Ingrese nuevo/s apellido/s (Actual: "+cli.getApellido()+"): ");
+                                        cli.setApellido(sc.nextLine().trim());
+                                        System.out.println("Apellido modificado.");
+                                        break;
+                                    case 3:
+                                        System.out.print("Ingrese nuevo telefono (Actual: "+cli.getTelefono()+"): ");
+                                        cli.setTelefono(sc.nextLine().trim());
+                                        System.out.println("Telefono modificado.");
+                                        break;
+                                    case 4:
+                                        System.out.print("Ingrese nuevo correo (Actual: "+cli.getEmail()+"): ");
+                                        cli.setEmail(sc.nextLine().trim());
+                                        System.out.println("Correo modificado.");
+                                        break;
+                                    default:
+                                        System.out.println("Valor ingresado no es válido.");
+                                        nroDoc = -1;
+                                        break;
+                                }    
+                            } while (opcion != 0);
+                            laterData = cli.toString();
+                            if (!prevData.equals(laterData)) {
+                                io.escribir("CLIENTE MODIFICADO: ANTES: "+prevData+" AHORA: "+laterData);
+                            }
+                        } else {
+                            if (nroDoc >= 0) {
+                                System.out.println("El documento ingresado no se encuentra registrado.");
+                            }
+                        }
+                    } else {
+                        System.out.println("Operación cancelada.");
+                    }
+                } while (nroDoc > 0 && cli == null);
+            } else {
+                if (opcion != 0) {
+                    System.out.println("Opcion no válida.");
+                }
+            }
+        } while (!flag && opcion != 0);
     }
 
     public static void mostrarClientes() {
@@ -735,7 +849,41 @@ public class MudanzasCompartidas {
     }
 
     public static void ABMSolicitudes() {
-        System.out.println("SOLICITUDES");
+        int opcion = 0;
+        do {
+            System.out.println("---------------- Solicitudes ----------------");
+            System.out.println("    1. Cargar Solicitud");
+            System.out.println("    2. Eliminar Solicitud");
+            System.out.println("    3. Modificar Solicitud");
+            System.out.println("--------------------------------------");
+            System.out.println("    4. Mostrar Solicitudes");
+            System.out.println("--------------------------------------");
+            System.out.println("    0. Atras");
+            System.out.println("--------------------------------------");
+            System.out.print("Ingrese una opción: ");
+            opcion = sc.nextInt();
+            clearTerminal();
+            switch (opcion) {
+                case 0:
+                    // No realiza nada y corta la iteracion
+                    break;
+                case 1:
+                    //cargarSolicitud();
+                    break;
+                case 2:
+                    //eliminarSolicitud();
+                    break;
+                case 3:
+                    //modificarSolicitud();
+                    break;
+                case 4:
+                    mostrarSolicitudes();
+                    break;
+                default:
+                    System.out.println("Valor ingresado no es válido.");
+                    break;
+            }
+        } while (opcion != 0);
     }
 
     public static void mostrarSolicitudes() {
