@@ -128,7 +128,7 @@ public class MapeoAMuchos {
             //Casos
             if (comparacion == 0) { //Si se encontró el nodo que contiene unDominio
                 // Localiza unRango
-                int posRango = nodo.getRango().localizar(unRango);
+                int posRango = nodo.getRango().localizar(unRango);                
                 if (posRango > 0) { // Si posRango esta fuera de rango, no sera posible la desasociacion    
                     // Ahora elimina unRango de la posicion posRango
                     exito = nodo.getRango().eliminar(posRango); 
@@ -371,8 +371,8 @@ public class MapeoAMuchos {
         // Metodo auxiliar que crea una lista con todos los rangos del mapeo menor a mayor (Orden de sus dominios), recorrido inorden inverso
         if(nodo != null) {
             obtenerConjuntoRangoAux(nodo.getDerecho(), resultado);
-            int i = 0, rangoSize = nodo.getRango().longitud();
-            while(i < rangoSize) {
+            int i = 1, rangoSize = nodo.getRango().longitud();
+            while(i <= rangoSize) {
                 resultado.insertar(nodo.getRango().recuperar(i), 1);
                 i++;
             }
