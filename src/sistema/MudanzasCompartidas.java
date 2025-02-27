@@ -12,6 +12,7 @@ import estructuras.mapeo.MapeoAMuchos;
 import estructuras.lineales.Lista;
 
 public class MudanzasCompartidas {
+    // En proceso ConsultarCiudad
     private static final Scanner sc = new Scanner(System.in);
     private static final DataIO io = new DataIO(); // Objeto para la entrada y salida de datos
     private static Diccionario ciudades = new Diccionario(); // Informacion sobre ciudades, cada ciudad almacena su lista de solicitudes
@@ -79,18 +80,22 @@ public class MudanzasCompartidas {
                     break;
                 case 6:
                     System.out.println();
+                    consultarCliente();
                     System.out.println();
                     break;
                 case 7:
                     System.out.println();
+                    consultarCiudad();
                     System.out.println();
                     break;
                 case 8:
                     System.out.println();
+                    consultarViaje();
                     System.out.println();
                     break;
                 case 9:
                     System.out.println();
+                    verificarViaje();
                     System.out.println();
                     break;
                 case 10:
@@ -99,7 +104,7 @@ public class MudanzasCompartidas {
                 default:
                     System.out.println("Valor ingresado no es válido.");
                     break;
-            }
+            }            
         } while (opcion != 0);
 
     }
@@ -1278,6 +1283,132 @@ public class MudanzasCompartidas {
         mostrarClientes();
         mostrarSolicitudes();
         io.escribir("Se ha mostrado el sistema.");
+    }
+
+    public static void consultarCliente() {
+        int opcion = -1;
+        int nroDoc = -1;
+        String tipoDoc = "";
+        boolean flag = false;
+        Cliente cli = null;
+        do {            
+            System.out.println("---------------- Consultar Cliente ----------------");
+            System.out.println("Se le solicitará tipo y numero de documento");
+
+            System.out.println("------------ Tipos de Documento ------------");
+            System.out.println("    0. Salir");
+            System.out.println("    1. Documento Nacional de Identidad");
+            System.out.println("    2. Pasaporte");
+            System.out.print("Ingrese el tipo de documento: ");
+            opcion = sc.nextInt();
+            sc.nextLine();
+            switch (opcion) {
+                case 0:
+                    tipoDoc = "";
+                    break;
+                case 1:
+                    tipoDoc = "DNI";
+                    break;
+                case 2:
+                    tipoDoc = "PAS";
+                    break;
+                default:
+                    tipoDoc = "";
+                    break;
+            }
+            flag = tipoDoc != "";
+            if (flag) {
+                System.out.println("Ingrese un número menor o igual a 0 para cancelar esta operación.");
+                do {
+                    System.out.print("Ingrese el número de documento: ");
+                    nroDoc = sc.nextInt();
+                    sc.nextLine();
+                    if (nroDoc > 0) {
+                        cli = clientes.get(tipoDoc+""+nroDoc);
+                        if (cli != null) {
+                            io.escribir("SE HA CONSULTADO CLIENTE: "+cli.toString());
+                            System.out.println("---------------- Cliente ----------------");
+                            System.out.println(cli.toString());
+                            System.out.print("Pulse Enter para salir: ");
+                            sc.nextLine();
+                        } else {
+                            System.out.println("No existe un cliente con tipo y numero de documento ingresados.");
+                        }
+                    } else {
+                            System.out.println("Operación cancelada.");
+                        }
+                    } while (nroDoc > 0 && cli == null);
+            } else {
+                if (opcion != 0) {
+                    System.out.println("Opcion inválida.");
+                }
+            }
+        } while (!flag && opcion != 0);
+        clearTerminal();
+    }
+
+    public static void consultarCiudad() {
+        int opcion = 0;
+        do {
+            System.out.println("---------------- Consultar Ciudad ----------------");
+            System.out.println("    1. Con codigo postal");
+            System.out.println("    2. Con prefijo");            
+            System.out.println("--------------------------------------");
+            System.out.println("    0. Atras");
+            System.out.println("--------------------------------------");
+            
+            System.out.print("Ingrese una opción: ");
+            opcion = sc.nextInt();
+            switch (opcion) {
+                case 0:
+                    // No realiza nada y corta la iteracion
+                    break;
+                case 1:
+                    consultarCiudadConCodigo();
+                    break;
+                case 2:
+                    //consultarCiudadConPrefijo();
+                    break;
+                default:
+                    System.out.println("Valor ingresado no es válido.");
+                    break;
+            }
+            clearTerminal();
+        } while (opcion != 0);
+    }
+
+    public static void consultarCiudadConCodigo() {
+        int codPost = -1;
+        boolean flag = false;
+        Ciudad ciu = null;
+        do {            
+            System.out.print("Ingrese el codigo postal (Ingrese numero menor o igual a 0 para cancelar): ");
+            codPost = sc.nextInt();
+            sc.nextLine();
+            flag = codPost > 0;
+            if (flag) {                                
+                ciu = (Ciudad) ciudades.obtenerDato(codPost);
+                if (ciu != null) {
+                    io.escribir("SE HA CONSULTADO CIUDAD CON CODIGO POSTAL: "+ciu.toString());
+                    System.out.println("---------------- Ciudad ----------------");
+                    System.out.println(ciu.toString());
+                    System.out.print("Pulse Enter para salir: ");
+                    sc.nextLine();
+                } else {
+                    System.out.println("No existe una ciudad con codigo postal ingresado.");
+                }
+            } else {
+                System.out.println("Operación cancelada.");
+            }
+        } while (!flag && codPost > 0);
+    }
+
+    public static void consultarViaje() {
+        
+    }
+
+    public static void verificarViaje() {
+        
     }
 
     public static void clearTerminal() {
