@@ -12,7 +12,6 @@ import estructuras.mapeo.MapeoAMuchos;
 import estructuras.lineales.Lista;
 
 public class MudanzasCompartidas {
-    //ABMSolicitudes finalizado
     private static final Scanner sc = new Scanner(System.in);
     private static final DataIO io = new DataIO(); // Objeto para la entrada y salida de datos
     private static Diccionario ciudades = new Diccionario(); // Informacion sobre ciudades, cada ciudad almacena su lista de solicitudes
@@ -1058,38 +1057,41 @@ public class MudanzasCompartidas {
                             flag = ciudades.existeClave(codDestino);
                             if (flag) {
                                 Lista listaSolicitudes = solicitudes.obtenerValores(codOrigen+""+codDestino);
-                                System.out.println("Lista de solicitudes con origen "+codOrigen+" y destino "+codDestino+": ");
-                                listar(listaSolicitudes);
-                                
-                                do {
-                                    System.out.print("Ingrese posicion de solicitud a eliminar (menor o igual a 0 para cancelar): ");
-                                    opcion = sc.nextInt();
-                                    sc.nextLine();
-                                    
-                                    if (opcion > 0) {
-                                        flag =  opcion <= listaSolicitudes.longitud();
-                                        if (flag) {
-                                            soli = (Solicitud) listaSolicitudes.recuperar(opcion);
+                                if (listaSolicitudes.longitud() > 0) {
+                                    System.out.println("Lista de solicitudes con origen "+codOrigen+" y destino "+codDestino+": ");
+                                    listar(listaSolicitudes);
+                                    do {
+                                        System.out.print("Ingrese posicion de solicitud a eliminar (menor o igual a 0 para cancelar): ");
+                                        opcion = sc.nextInt();
+                                        sc.nextLine();
+                                        
+                                        if (opcion > 0) {
+                                            flag =  opcion <= listaSolicitudes.longitud();
+                                            if (flag) {
+                                                soli = (Solicitud) listaSolicitudes.recuperar(opcion);
 
-                                            System.out.println("Se eliminara la siguiente solicitud: "+soli.toString());
-                                            System.out.print("¿Esta seguro? (S/N): ");
-                                            switch (sc.next().toUpperCase().charAt(0)) {
-                                                case 'S':
-                                                    solicitudes.desasociar(codOrigen+""+codDestino, soli);
-                                                    io.escribir("SOLICITUD ELIMINADA: "+soli.toString());
-                                                    System.out.println("Solicitud eliminada con éxito.");
-                                                    break;
-                                                default:
-                                                    System.out.println("Operación cancelada.");
-                                                    break;
+                                                System.out.println("Se eliminara la siguiente solicitud: "+soli.toString());
+                                                System.out.print("¿Esta seguro? (S/N): ");
+                                                switch (sc.next().toUpperCase().charAt(0)) {
+                                                    case 'S':
+                                                        solicitudes.desasociar(codOrigen+""+codDestino, soli);
+                                                        io.escribir("SOLICITUD ELIMINADA: "+soli.toString());
+                                                        System.out.println("Solicitud eliminada con éxito.");
+                                                        break;
+                                                    default:
+                                                        System.out.println("Operación cancelada.");
+                                                        break;
+                                                }
+                                            } else {
+                                                System.out.println("Posición incorrecta.");
                                             }
                                         } else {
-                                            System.out.println("Posición incorrecta.");
-                                        }
-                                    } else {
-                                        System.out.println("Operación cancelada");
-                                    }    
-                                } while (!flag && opcion > 0);        
+                                            System.out.println("Operación cancelada");
+                                        }    
+                                    } while (!flag && opcion > 0);
+                                } else {
+                                    System.out.println("No existen solicitudes entre las ciudades dadas.");
+                                }
                             } else {
                                 System.out.println("No existe ciudad con codigo ingresado.");
                             }
@@ -1142,96 +1144,112 @@ public class MudanzasCompartidas {
                             flag = ciudades.existeClave(codDestino);
                             if (flag) {
                                 Lista listaSolicitudes = solicitudes.obtenerValores(codOrigen+""+codDestino);
-                                System.out.println("Lista de solicitudes con origen "+codOrigen+" y destino "+codDestino+": ");
-                                listar(listaSolicitudes);
-                                do {
-                                    System.out.print("Ingrese posicion de solicitud a modificar (menor o igual a 0 para cancelar): ");
-                                    opcion = sc.nextInt();
-                                    sc.nextLine();
-                                    
-                                    if (opcion > 0) {
-                                        flag =  opcion <= listaSolicitudes.longitud();
-                                        if (flag) {
-                                            soli = (Solicitud) listaSolicitudes.recuperar(opcion);
-                                            String prevData = soli.toString();
-                                            String laterData = prevData;
-                                            opcion = 0;                                            
-                                            do {
-                                                clearTerminal();
-                                                System.out.println("-------- Modificando: "+soli.toString()+" --------");
-                                                System.out.println("    1. Fecha: "+soli.getFecha());
-                                                System.out.println("    2. Metros Cubicos: "+soli.getMetrosCubicos());
-                                                System.out.println("    3. Bultos: "+soli.getBultos());
-                                                System.out.println("    4. Domicilio Retiro: "+soli.getDomicilioRetiro());
-                                                System.out.println("    5. Domicilio Entrega: "+soli.getDomicilioEntrega());
-                                                System.out.println("    6. Pago de envio: "+soli.getEnvioPago());
-                                                System.out.println("--------------------------------------");
-                                                System.out.println("    0. Listo");
-                                                System.out.println("--------------------------------------");
-                                                System.out.print("¿Que dato desea modificar?: ");
-                                                opcion = sc.nextInt();
-                                                sc.nextLine();
-                                                switch (opcion) {
-                                                    case 0:
-                                                        //No realiza accion y vuelve al menu anterior
-                                                        break;
-                                                    case 1:
-                                                        String nuevaFe = "";                                                        
-                                                        do {
-                                                            System.out.print("Ingrese nueva fecha de solicitud (AAAA/MM/DD) (Actual: "+soli.getFecha()+"): ");
-                                                            nuevaFe = sc.nextLine().trim();
-                                                            flag = Pattern.compile("\\b\\d{4}/(0[1-9]|1[0-2])/(0[1-9]|[12]\\d|3[01])\\b").matcher(nuevaFe).matches();
-                                                            if (flag) {
-                                                                soli.setFecha(nuevaFe);
-                                                                System.out.println("Fecha modificada.");
+                                if (listaSolicitudes.longitud() > 0) {
+                                    System.out.println("Lista de solicitudes con origen "+codOrigen+" y destino "+codDestino+": ");
+                                    listar(listaSolicitudes);
+                                    do {
+                                        System.out.print("Ingrese posicion de solicitud a modificar (menor o igual a 0 para cancelar): ");
+                                        opcion = sc.nextInt();
+                                        sc.nextLine();
+                                        
+                                        if (opcion > 0) {
+                                            flag =  opcion <= listaSolicitudes.longitud();
+                                            if (flag) {
+                                                soli = (Solicitud) listaSolicitudes.recuperar(opcion);
+                                                String prevData = soli.toString();
+                                                String laterData = prevData;
+                                                opcion = 0;                                            
+                                                do {
+                                                    clearTerminal();
+                                                    System.out.println("-------- Modificando: "+soli.toString()+" --------");
+                                                    System.out.println("    1. Fecha: "+soli.getFecha());
+                                                    System.out.println("    2. Metros Cubicos: "+soli.getMetrosCubicos());
+                                                    System.out.println("    3. Bultos: "+soli.getBultos());
+                                                    System.out.println("    4. Domicilio Retiro: "+soli.getDomicilioRetiro());
+                                                    System.out.println("    5. Domicilio Entrega: "+soli.getDomicilioEntrega());
+                                                    System.out.println("    6. Envio abonado: "+(soli.getEnvioPago()? "Si" : "No"));
+                                                    System.out.println("--------------------------------------");
+                                                    System.out.println("    0. Listo");
+                                                    System.out.println("--------------------------------------");
+                                                    System.out.print("¿Que dato desea modificar?: ");
+                                                    opcion = sc.nextInt();
+                                                    sc.nextLine();
+                                                    switch (opcion) {
+                                                        case 0:
+                                                            //No realiza accion y vuelve al menu anterior
+                                                            break;
+                                                        case 1:
+                                                            String nuevaFe = "";                                                        
+                                                            do {
+                                                                System.out.print("Ingrese nueva fecha de solicitud (AAAA/MM/DD) (Actual: "+soli.getFecha()+"): ");
+                                                                nuevaFe = sc.nextLine().trim();
+                                                                flag = Pattern.compile("\\b\\d{4}/(0[1-9]|1[0-2])/(0[1-9]|[12]\\d|3[01])\\b").matcher(nuevaFe).matches();
+                                                                if (flag) {
+                                                                    soli.setFecha(nuevaFe);
+                                                                    System.out.println("Fecha modificada.");
+                                                                } else {
+                                                                    System.out.println("Formato de fecha inválido.");
+                                                                }    
+                                                            } while (!flag);
+                                                            break;
+                                                        case 2:
+                                                            double mts = 0;
+                                                            System.out.print("Ingrese nuevos metros cubicos de solicitud (Actual: "+soli.getMetrosCubicos()+"): ");
+                                                            mts = sc.nextDouble();
+                                                            sc.nextLine();
+                                                            if (mts > 0) {
+                                                                soli.setMetrosCubicos(mts);
+                                                                System.out.println("Metros Cubicos modificados.");
                                                             } else {
-                                                                System.out.println("Formato de fecha inválido.");
+                                                                System.out.println("El valor debe ser positivo");
                                                             }
                                                             break;
-                                                        } while (!flag);
-                                                    case 2:
-                                                        System.out.print("Ingrese nuevos metros cubicos de solicitud (Actual: "+soli.getMetrosCubicos()+"): ");
-                                                        soli.setMetrosCubicos(sc.nextDouble());
-                                                        sc.nextLine();
-                                                        System.out.println("Metros Cubicos modificados.");
-                                                        break;
-                                                    case 3:
-                                                        System.out.print("Ingrese nueva cantidad de bultos (Actual: "+soli.getBultos()+"): ");
-                                                        soli.setBultos(sc.nextInt());
-                                                        sc.nextLine();
-                                                        System.out.println("Cantidad de bultos modificada.");
-                                                        break;
-                                                    case 4:
-                                                        System.out.print("Ingrese nuevo domicilio de retiro (Actual: "+soli.getDomicilioRetiro()+"): ");
-                                                        soli.setDomicilioRetiro(sc.nextLine().trim());
-                                                        System.out.println("Domicilio de retiro modificado.");
-                                                        break;
-                                                    case 5:
-                                                        System.out.print("Ingrese nuevo domicilio de entrega (Actual: "+soli.getDomicilioEntrega()+"): ");
-                                                        soli.setDomicilioEntrega(sc.nextLine().trim());
-                                                        System.out.println("Domicilio de entrega modificado.");
-                                                        break;
-                                                    case 6:
-                                                        System.out.print("¿El envio está pago? (S/N) (Actual: "+soli.getEnvioPago()+"): ");
-                                                        soli.setEnvioPago(sc.next().toUpperCase().charAt(0) == 'S');
-                                                        System.out.println("Estado del pago de envio modificado.");
-                                                        break;
-                                                    default:
-                                                        System.out.println("Valor ingresado no es válido.");
-                                                        break;
-                                                }    
-                                            } while (opcion != 0);
-                                            laterData = soli.toString();
-                                            if (!prevData.equals(laterData)) {
-                                                io.escribir("SOLICITUD MODIFICADA: ANTES: ["+prevData+"] AHORA: ["+laterData+"]");
+                                                        case 3:
+                                                            int bult = 0;
+                                                            System.out.print("Ingrese nueva cantidad de bultos (Actual: "+soli.getBultos()+"): ");
+                                                            bult = sc.nextInt();
+                                                            sc.nextLine();
+                                                            if (bult > 0) {
+                                                                soli.setBultos(bult);
+                                                                System.out.println("Cantidad de bultos modificada.");
+                                                            } else {
+                                                                System.out.println("El valor debe ser positivo");
+                                                            }
+                                                            break;
+                                                        case 4:
+                                                            System.out.print("Ingrese nuevo domicilio de retiro (Actual: "+soli.getDomicilioRetiro()+"): ");
+                                                            soli.setDomicilioRetiro(sc.nextLine().trim());
+                                                            System.out.println("Domicilio de retiro modificado.");
+                                                            break;
+                                                        case 5:
+                                                            System.out.print("Ingrese nuevo domicilio de entrega (Actual: "+soli.getDomicilioEntrega()+"): ");
+                                                            soli.setDomicilioEntrega(sc.nextLine().trim());
+                                                            System.out.println("Domicilio de entrega modificado.");
+                                                            break;
+                                                        case 6:
+                                                            System.out.print("¿El envio está pago? (S/N) (Actual: "+(soli.getEnvioPago()?"Si": "No")+"): ");
+                                                            soli.setEnvioPago(sc.next().toUpperCase().charAt(0) == 'S');
+                                                            System.out.println("Estado del pago de envio modificado.");
+                                                            break;
+                                                        default:
+                                                            System.out.println("Valor ingresado no es válido.");
+                                                            break;
+                                                    }    
+                                                } while (opcion != 0);
+                                                laterData = soli.toString();
+                                                if (!prevData.equals(laterData)) {
+                                                    io.escribir("SOLICITUD MODIFICADA: ANTES: ["+prevData+"] AHORA: ["+laterData+"]");
+                                                }
+                                            } else {
+                                                System.out.println("Posición incorrecta.");
                                             }
                                         } else {
-                                            System.out.println("Posición incorrecta.");
-                                        }
-                                    } else {
-                                        System.out.println("Operación cancelada");
-                                    }    
-                                } while (!flag && opcion > 0);        
+                                            System.out.println("Operación cancelada");
+                                        }    
+                                    } while (!flag && opcion > 0);
+                                } else {
+                                    System.out.println("No existen solicitudes entre las ciudades dadas.");
+                                }
                             } else {
                                 System.out.println("No existe ciudad con codigo ingresado.");
                             }
