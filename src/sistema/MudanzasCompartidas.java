@@ -12,7 +12,7 @@ import estructuras.mapeo.MapeoAMuchos;
 import estructuras.lineales.Lista;
 
 public class MudanzasCompartidas {
-    // En proceso ConsultarCiudad
+    // ConsultarViaje lista. Sigue Verificar Viajes.
     private static final Scanner sc = new Scanner(System.in);
     private static final DataIO io = new DataIO(); // Objeto para la entrada y salida de datos
     private static Diccionario ciudades = new Diccionario(); // Informacion sobre ciudades, cada ciudad almacena su lista de solicitudes
@@ -106,7 +106,7 @@ public class MudanzasCompartidas {
                     break;
             }            
         } while (opcion != 0);
-
+        io.escribir("EJECICIÓN FINALIZADA.");
     }
 
     public static void cargaInicial() {
@@ -1367,7 +1367,7 @@ public class MudanzasCompartidas {
                     consultarCiudadConCodigo();
                     break;
                 case 2:
-                    //consultarCiudadConPrefijo();
+                    consultarCiudadConPrefijo();
                     break;
                 default:
                     System.out.println("Valor ingresado no es válido.");
@@ -1403,8 +1403,282 @@ public class MudanzasCompartidas {
         } while (!flag && codPost > 0);
     }
 
+    public static void consultarCiudadConPrefijo() {
+        int prefijo = -1;
+        int base = 0;
+        int min = 0;
+        int max = 0;
+        boolean flag = false;
+        Lista listaCiudades = new Lista();
+        do {
+            System.out.print("Ingrese el prefijo de codigo postal (Ingrese numero menor o igual a 0 para cancelar): ");
+            prefijo = sc.nextInt();
+            sc.nextLine();
+            flag = prefijo > 0;
+            if (flag) {
+                base = prefijo;                
+                switch((prefijo+"").length()) { //Segun cantidad de cifras, se asigna el rango
+                    case 1:
+                        min = base*1000;
+                        max = min+999;
+                    break;
+                    case 2:
+                        min = base*100;
+                        max = min+99;
+                    break;
+                    case 3:
+                        min = base*10;
+                        max = min+9;
+                    break;
+                    case 4:
+                        min = base;
+                        max = base;
+                    break;
+                    default:
+                        flag = false;
+                    break;
+                }
+                if (flag) {
+                    listaCiudades = ciudades.listarRango(min, max);
+                    if (!listaCiudades.esVacia()) {
+                        io.escribir("SE HAN CONSULTADO CIUDADES CON PREFIJO "+prefijo+": "+listaCiudades.toString());
+                        System.out.println("---------------- Ciudades ----------------");
+                        listar(listaCiudades);
+                    } else {
+                        System.out.println("No existen ciudades con prefijo ingresado.");
+                    }
+                    System.out.print("Pulse Enter para salir: ");
+                    sc.nextLine();
+                } else {
+                    System.out.println("El prefijo debe tener de 1 a 4 cifras.");
+                }
+            } else {
+                System.out.println("Operación cancelada.");
+            }
+        } while (!flag && prefijo > 0);
+    }
+
     public static void consultarViaje() {
-        
+        int opcion = 0;
+        do {
+            System.out.println("---------------- Consultar Viaje ----------------");
+            System.out.println("    1. Camino de A a B que recorra menos ciudades.");
+            System.out.println("    2. Camino de A a B en menos kilometros.");
+            System.out.println("    3. Caminos de A a B que pasen por C (sin recorrer dos veces la misma)."); 
+            System.out.println("    4. Verificar si es posible llegar de A a B en menos de X kilometros."); 
+            System.out.println("--------------------------------------");
+            System.out.println("    0. Atras");
+            System.out.println("--------------------------------------");
+            System.out.print("Ingrese una opción: ");
+            opcion = sc.nextInt();
+            sc.nextLine();
+
+            switch(opcion) {
+                case 1:
+                    caminoMenosCiudades();
+                    break;
+                case 2:
+                    caminoMenosKilometros();
+                    break;
+                case 3:
+                    caminosPasandoCiudad();
+                    break;
+                case 4:
+                    verificarCaminoMenosXKilometros();
+                    break;
+                default:
+                    System.out.println("Valor ingresado no es válido.");
+                    break;
+            }
+            clearTerminal();
+        } while(opcion != 0);
+    }
+
+    public static void caminoMenosCiudades() {
+        int codOrigen = -1;
+        int codDestino = -1;
+        Lista camino = null;
+        boolean flag = false;
+        do {
+            System.out.print("Ingrese el codigo postal de la ciudad origen (Ingrese un numero menor o igual a 0 para salir): ");
+            codOrigen = sc.nextInt();
+            sc.nextLine();
+            if (codOrigen > 0) {
+                flag = ciudades.existeClave(codOrigen); 
+                if (flag) {
+                    do {
+                        System.out.print("Ingrese el codigo postal de la ciudad destino (Ingrese un numero menor o igual a 0 para salir): ");
+                        codDestino = sc.nextInt();
+                        sc.nextLine();
+                        if (codDestino > 0) {
+                            flag = ciudades.existeClave(codDestino);
+                            if (flag) {
+                                camino = mapa.caminoMasCorto(codOrigen, codDestino);
+                                if(!camino.esVacia()) {
+                                    io.escribir("SE CONSULTÓ CAMINO QUE RECORRE MENOS CIUDADES DE "+codOrigen+" A "+codDestino+": "+camino.toString());
+                                    System.out.println("---------------- Camino con menos ciudades ("+codOrigen+" <-> "+codDestino+") ----------------");
+                                    listar(camino);
+                                } else {
+                                    System.out.println("No existe camino entre ciudades.");
+                                }
+                                System.out.print("Presione enter para salir: ");
+                                sc.nextLine();
+                            } else {
+                                System.out.println("No existe ciudad con codigo ingresado.");
+                            }
+                        }
+                    } while(!flag && codDestino > 0);
+                } else {
+                    System.out.println("No existe ciudad con codigo ingresado.");
+                }
+            }
+        } while(!flag && codOrigen > 0);
+    }
+
+    public static void caminoMenosKilometros() {
+        int codOrigen = -1;
+        int codDestino = -1;
+        Lista camino = null;
+        boolean flag = false;
+        do {
+            System.out.print("Ingrese el codigo postal de la ciudad origen (Ingrese un numero menor o igual a 0 para salir): ");
+            codOrigen = sc.nextInt();
+            sc.nextLine();
+            if (codOrigen > 0) {
+                flag = ciudades.existeClave(codOrigen); 
+                if (flag) {
+                    do {
+                        System.out.print("Ingrese el codigo postal de la ciudad destino (Ingrese un numero menor o igual a 0 para salir): ");
+                        codDestino = sc.nextInt();
+                        sc.nextLine();
+                        if (codDestino > 0) {
+                            flag = ciudades.existeClave(codDestino);
+                            if (flag) {
+                                camino = mapa.caminoMasCortoEtiqueta(codOrigen, codDestino); //ACA
+                                if(!camino.esVacia()) {
+                                    io.escribir("SE CONSULTÓ CAMINO QUE RECORRE MENOS KILOMETROS DE "+codOrigen+" A "+codDestino+": "+camino.toString());
+                                    System.out.println("---------------- Camino con menos kilometros ("+codOrigen+" <-> "+codDestino+") ----------------");
+                                    listar(camino);
+                                } else {
+                                    System.out.println("No existe camino entre ciudades.");
+                                }
+                                System.out.print("Presione enter para salir: ");
+                                sc.nextLine();
+                            } else {
+                                System.out.println("No existe ciudad con codigo ingresado.");
+                            }
+                        }
+                    } while(!flag && codDestino > 0);
+                } else {
+                    System.out.println("No existe ciudad con codigo ingresado.");
+                }
+            }
+        } while(!flag && codOrigen > 0);  
+    }
+
+    public static void caminosPasandoCiudad() {
+        int codOrigen = -1;
+        int codDestino = -1;
+        int codIntermedio = -1;
+        Lista caminos = null;
+        boolean flag = false;
+        do {
+            System.out.print("Ingrese el codigo postal de la ciudad origen (Ingrese un numero menor o igual a 0 para salir): ");
+            codOrigen = sc.nextInt();
+            sc.nextLine();
+            if (codOrigen > 0) {
+                flag = ciudades.existeClave(codOrigen); 
+                if (flag) {
+                    do {
+                        System.out.print("Ingrese el codigo postal de la ciudad destino (Ingrese un numero menor o igual a 0 para salir): ");
+                        codDestino = sc.nextInt();
+                        sc.nextLine();
+                        if (codDestino > 0) {
+                            flag = ciudades.existeClave(codDestino);
+                            if (flag) {
+                                do {
+                                    System.out.print("Ingrese el codigo postal de la ciudad intermedia (Ingrese un numero menor o igual a 0 para salir): ");
+                                    codIntermedio = sc.nextInt();
+                                    sc.nextLine();
+                                    if (codIntermedio > 0) {
+                                        flag = ciudades.existeClave(codIntermedio);
+                                        if (flag) {
+                                            caminos = mapa.caminosCruzandoIntermedio(codOrigen, codDestino, codIntermedio);
+                                            if(!caminos.esVacia()) {
+                                                String cadena = "{\n";
+                                                for(int i = 1; i <= caminos.longitud();i++) {
+                                                    cadena += caminos.recuperar(i)+"\n";
+                                                }
+                                                cadena += "}";
+                                                io.escribir("SE CONSULTÓ CAMINOS QUE RECORREN "+codIntermedio+" DE "+codOrigen+" A "+codDestino+": "+cadena);
+                                                System.out.println("---------------- Caminos que cruzan por un punto ("+codOrigen+" <-> "+codIntermedio+" <-> "+codDestino+") ----------------");
+                                                listar(caminos);
+                                            } else {
+                                                System.out.println("No existen camino entre dos ciudades que pasen por otra especificada.");
+                                            }
+                                            System.out.print("Presione enter para salir: ");
+                                            sc.nextLine();
+
+                                        } else {
+                                            System.out.println("No existe ciudad con codigo ingresado.");
+                                        }
+                                    }
+                                } while(!flag && codIntermedio > 0);
+                            } else {
+                                System.out.println("No existe ciudad con codigo ingresado.");
+                            }
+                        }
+                    } while(!flag && codDestino > 0);
+                } else {
+                    System.out.println("No existe ciudad con codigo ingresado.");
+                }
+            }
+        } while(!flag && codOrigen > 0);
+    }
+
+    public static void verificarCaminoMenosXKilometros() {
+        int codOrigen = -1;
+        int codDestino = -1;
+        double kmsMax = -1;
+        boolean respuesta = false;
+        boolean flag = false;
+        do {
+            System.out.print("Ingrese el codigo postal de la ciudad origen (Ingrese un numero menor o igual a 0 para salir): ");
+            codOrigen = sc.nextInt();
+            sc.nextLine();
+            if (codOrigen > 0) {
+                flag = ciudades.existeClave(codOrigen); 
+                if (flag) {
+                    do {
+                        System.out.print("Ingrese el codigo postal de la ciudad destino (Ingrese un numero menor o igual a 0 para salir): ");
+                        codDestino = sc.nextInt();
+                        sc.nextLine();
+                        if (codDestino > 0) {
+                            flag = ciudades.existeClave(codDestino);
+                            if (flag) {
+                                do {
+                                    System.out.print("Ingrese distancia maxima a recorrer en kms (Ingrese un numero menor o igual a 0 para salir): ");
+                                    kmsMax = sc.nextDouble();
+                                    sc.nextLine();
+                                    if (kmsMax > 0) {
+                                        respuesta = mapa.verificarCaminoMenosKm(codOrigen, codDestino, kmsMax);
+                                        String cadena = (respuesta? "Si": "No")+" es posible llegar en menos de "+kmsMax+" kms desde "+codOrigen+" hasta "+codDestino+".";
+                                        io.escribir("SE VERIFICÓ SI HAY UN CAMINO QUE RECORRE MENOS DE "+kmsMax+" Km DE "+codOrigen+" A "+codDestino+": "+cadena);
+                                        System.out.println("---- "+cadena);
+                                        System.out.print("Presione enter para salir: ");
+                                        sc.nextLine();
+                                    }
+                                } while(!flag && kmsMax > 0);
+                            } else {
+                                System.out.println("No existe ciudad con codigo ingresado.");
+                            }
+                        }
+                    } while(!flag && codDestino > 0);
+                } else {
+                    System.out.println("No existe ciudad con codigo ingresado.");
+                }
+            }
+        } while(!flag && codOrigen > 0);   
     }
 
     public static void verificarViaje() {
