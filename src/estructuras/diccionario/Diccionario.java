@@ -356,7 +356,38 @@ public class Diccionario {
         }
     }
 
-    public Lista listarDatos() { 
+    public Lista listarRango(Comparable min, Comparable max) {
+        //Lista objetos del arbol de menor a mayor que se encuentran en el intervalo [min,max]
+        Lista list = new Lista();
+        listarRangoAux(this.raiz, min, max, list);
+        return list;
+    }
+
+    private void listarRangoAux(NodoAVLDicc nodo, Comparable min, Comparable max, Lista list) {
+        //Inserta los elementos => min y <= max. Realizo insercion con recorrido inorden inverso (der, raiz, izq)
+        //Si nodo no es nulo
+        if (nodo != null) {
+            //Elemento de nodo
+            Comparable elemNodo = nodo.getClave(); 
+            //Comparaciones de elemNodo con los extremos min y max
+            int comparacionMin = elemNodo.compareTo(min);
+            int comparacionMax = elemNodo.compareTo(max);
+            //Si elemNodo < max, recorro subArbol derecho
+            if (comparacionMax < 0) {
+                listarRangoAux(nodo.getDerecho(), min, max, list); 
+            }
+            //Si min <= elemNodo <= max, listo elemento en posicion 1
+            if (comparacionMin >= 0 && comparacionMax <= 0) {
+                list.insertar(nodo.getDato(), 1); //Lista el dato
+            }
+            //Si min < elemNodo, recorro subArbol izquierdo
+            if (comparacionMin > 0) {
+                listarRangoAux(nodo.getIzquierdo(), min, max, list);
+            }
+        }
+    }
+
+    public Lista listarDatos() {
         //Retorna una lista de los datos del arbol
         Lista list = new Lista();
         listarDatosAux(this.raiz, list);
