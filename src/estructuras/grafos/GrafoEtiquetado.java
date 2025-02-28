@@ -283,7 +283,7 @@ public class GrafoEtiquetado {
         }
         return camCorto;
     }
-    
+
     public Lista caminoMasLargo(Object origen, Object destino) {
         Lista camLargo = new Lista();
         NodoVert aux = this.inicio; 
@@ -336,6 +336,187 @@ public class GrafoEtiquetado {
             camActual.eliminar(camActual.longitud());
         }
         return camLargo;
+    }    
+
+    public Lista caminosCruzandoIntermedio(Object origen, Object destino, Object intermedio) {
+        //Lista los caminos desde origen a destino, pasando una vez por intermedio y sin recorrer mas de una vez ningun nodo
+        Lista resultado = new Lista();
+        NodoVert aux = this.inicio; 
+        NodoVert auxOrig = null;
+        NodoVert auxDest = null;
+        NodoVert auxInt = null;
+
+        //No utilizo ubicarVertice dos veces pues es ineficiente
+        while (aux != null && (auxOrig == null || auxDest == null || auxInt == null)) { //Busco ambos nodos
+            if (origen.equals(aux.getElemento())) { //Si encuentra origen
+                auxOrig = aux;
+            } else {
+                if (destino.equals(aux.getElemento())) { //Si encuentra destino
+                    auxDest = aux;
+                } else {
+                    if (intermedio.equals(aux.getElemento())) { //Si encuentra intermedio
+                        auxInt = aux;
+                    }
+                }
+            }
+            aux = aux.getSigVertice(); //Siguiente vertice
+        }
+
+        if(auxDest != null && auxDest != null && auxInt != null) {
+            Lista camActual = new Lista();            
+            resultado = caminosCruzandoIntermedioAux(auxOrig, destino, intermedio, resultado, camActual, false);
+        }
+        return resultado;
+    }
+
+    private Lista caminosCruzandoIntermedioAux(NodoVert nodo, Object destino, Object intermedio, Lista resultado, Lista camActual, boolean flag) {
+        //Metodo auxiliar, recursivamente recorre nodos de un grafo, retorna lista de caminos de A a B que pasan por C
+        //flag: indica si se cruzo por C en el recorrido actual
+        if (nodo != null) {
+            Object elem = nodo.getElemento();
+            NodoAdy ady = null;
+            NodoVert auxVert = null;
+            camActual.insertar(elem, camActual.longitud()+1); //Inserta nodo actual (pues es recorrido)
+            if (flag) { //Verifica que no cruze primero por el destino
+                if (elem.equals(destino)) { //Si encuentra destino
+                    Lista aux = camActual.clone();                    
+                    resultado.insertar(aux, resultado.longitud()+1); //Clona camActual para no modificar la referencia                    
+                } else { // si no lo encuentra recorre sus adyacentes para buscar el camino
+                    ady = nodo.getPrimerAdyacente();                    
+                    while (ady != null) { //Recorro sus adyacentes (arcos)
+                        auxVert = ady.getVertice(); 
+                        //Si no fue visitado en este camino, entonces lo visita
+                        if (camActual.localizar(auxVert.getElemento()) < 0) { 
+                            resultado = caminosCruzandoIntermedioAux(ady.getVertice(), destino, intermedio, resultado, camActual, flag);
+                        }
+                        ady = ady.getSigAdyacente(); //Siguiente arco
+                    }
+                }
+            } else {
+                ady = nodo.getPrimerAdyacente();
+                flag = elem.equals(intermedio);
+                while (ady != null) { //Recorro sus adyacentes (arcos)
+                    auxVert = ady.getVertice(); 
+                    //Si no fue visitado en este camino, entonces lo visita
+                    if (camActual.localizar(auxVert.getElemento()) < 0) { 
+                        //Si el nodo agregado es punto intermedio, avisa en la siguiente invocacion
+                        resultado = caminosCruzandoIntermedioAux(ady.getVertice(), destino, intermedio, resultado, camActual, flag);
+                    }
+                    ady = ady.getSigAdyacente(); //Siguiente arco
+                }
+            }  
+            //Quita nodo actual (ultimo insertado) porque puede haber mas caminos que lo visiten
+            camActual.eliminar(camActual.longitud());
+        }        
+        return resultado;
+    }
+
+    public Lista caminoMasCortoEtiqueta(Object origen, Object destino) {
+        //Lista camino de origen a destino donde la sumatoria de las etiquetas de arcos es minimal
+        Lista resultado = new Lista();
+        NodoVert aux = this.inicio; 
+        NodoVert auxOrig = null;
+        NodoVert auxDest = null;        
+
+        //No utilizo ubicarVertice dos veces pues es ineficiente
+        while (aux != null && (auxOrig == null || auxDest == null)) { //Busco ambos nodos
+            if (origen.equals(aux.getElemento())) { //Si encuentra origen
+                auxOrig = aux;
+            } else {
+                if (destino.equals(aux.getElemento())) { //Si encuentra destino
+                    auxDest = aux;
+                }
+            }
+            aux = aux.getSigVertice(); //Siguiente vertice
+        }
+
+        if(auxDest != null && auxDest != null) {
+            Lista camActual = new Lista();
+            double[] kmResultado = {0.0};
+            resultado = caminoCortoEtiquetaAux(auxOrig, destino, resultado, kmResultado, camActual, 0);
+        }
+        return resultado;
+    }
+
+    private Lista caminoCortoEtiquetaAux(NodoVert nodo, Object destino, Lista resultado, double[] kmResultado, Lista camActual, double kmActual){
+        //Metodo auxiliar, recursivamente recorre nodos de un grafo, retorna el camino con menos km
+        if (nodo != null) {
+            //Verifica si no supera al mas corto (en suma de etiquetas) con la siguiente insercion (ya que no tendria sentido seguir buscando en ese punto)
+            if (resultado.esVacia() || (kmActual < kmResultado[0])) {
+                Object elem = nodo.getElemento(); 
+                camActual.insertar(elem, camActual.longitud()+1); //Inserta nodo actual (pues es recorrido)
+                if (elem.equals(destino)) { //Si encuentra destino
+                    resultado = camActual.clone(); //Clona camActual para no modificar la referencia
+                    kmResultado[0] = kmActual; //Modifica el nuevo
+                } else { // si no lo encuentra recorre sus adyacentes para buscar el camino
+                    NodoAdy ady = nodo.getPrimerAdyacente();
+                    NodoVert auxVert = null;
+                    while (ady != null) { //Recorro sus adyacentes (arcos)
+                        auxVert = ady.getVertice(); 
+                        //Si no fue visitado en este camino, entonces lo visita
+                        if (camActual.localizar(auxVert.getElemento()) < 0) { 
+                            resultado = caminoCortoEtiquetaAux(ady.getVertice(), destino, resultado, kmResultado, camActual, kmActual+ady.getEtiqueta()); 
+                            
+                        }
+                        ady = ady.getSigAdyacente(); //Siguiente arco
+                    }
+                }
+                //Quita nodo actual (ultimo insertado) porque puede haber mas caminos que lo visiten
+                camActual.eliminar(camActual.longitud());
+            }
+        }
+        return resultado;
+    }
+  
+    public boolean verificarCaminoMenosKm(Object origen, Object destino, double kms) {        
+        NodoVert aux = this.inicio; 
+        NodoVert auxOrig = null;
+        NodoVert auxDest = null;
+        boolean respuesta = false;
+        //No utilizo ubicarVertice dos veces pues es ineficiente
+        while (aux != null && (auxOrig == null || auxDest == null)) { //Busco ambos nodos
+            if (origen.equals(aux.getElemento())) { //Si encuentra origen
+                auxOrig = aux;
+            } else {
+                if (destino.equals(aux.getElemento())) { //Si encuentra destino
+                    auxDest = aux;
+                }
+            }
+            aux = aux.getSigVertice(); //Siguiente vertice
+        }
+        if (auxOrig != null && auxDest != null) { //Fueron encontrados, busco un camino
+            Lista camActual = new Lista();
+            respuesta = verificarCaminoMenosKmAux(auxOrig, destino, camActual, 0, kms);
+        }
+        return respuesta;
+    }
+
+    private boolean verificarCaminoMenosKmAux(NodoVert nodo, Object destino, Lista camActual, double kmActual, double kms) {
+        //Metodo auxiliar, recursivamente recorre nodos de un grafo, retorna verdadero si encuentra un camino que recorra menos de kms kilometros
+        boolean respuesta = false;
+        if (nodo != null) {
+            //Verifica si no supera al mas corto (en suma de etiquetas) con la siguiente insercion (ya que no tendria sentido seguir buscando en ese punto)
+            if (kmActual < kms) {
+                Object elem = nodo.getElemento(); 
+                camActual.insertar(elem, camActual.longitud()+1); //Inserta nodo actual (pues es recorrido)
+                respuesta = elem.equals(destino); //Verifica si llego a destino
+                if (!respuesta) { //Si no encuentra destino, sigue buscando
+                    NodoAdy ady = nodo.getPrimerAdyacente();
+                    NodoVert auxVert = null;
+                    while (ady != null && !respuesta) { //Recorro sus adyacentes (arcos), hasta encontrar destino
+                        auxVert = ady.getVertice(); 
+                        //Si no fue visitado en este camino, entonces lo visita
+                        if (camActual.localizar(auxVert.getElemento()) < 0) { 
+                            respuesta = verificarCaminoMenosKmAux(ady.getVertice(), destino, camActual, kmActual+ady.getEtiqueta(), kms);
+                        }
+                        ady = ady.getSigAdyacente(); //Siguiente arco
+                    }
+                }
+                //Quita nodo actual (ultimo insertado) porque puede haber mas caminos que lo visiten
+                camActual.eliminar(camActual.longitud());
+            }
+        }
+        return respuesta;
     }
 
     public Lista listarEnProfundidad() {
