@@ -229,6 +229,7 @@ public class MapeoAMuchos {
         return nodo;
     }
 
+    @SuppressWarnings("unused")
     private NodoAVLMapeoM mayorEnSubarbol(NodoAVLMapeoM nodo) {
         //Metodo que retorna referencia al Nodo con mayor clave de un subarbol
         NodoAVLMapeoM der = nodo.getDerecho();
