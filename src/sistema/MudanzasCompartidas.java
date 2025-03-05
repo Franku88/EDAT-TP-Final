@@ -16,8 +16,8 @@ public class MudanzasCompartidas {
     private static final Scanner sc = new Scanner(System.in);
     private static final DataIO io = new DataIO(); // Objeto para la entrada y salida de datos
     private static Diccionario ciudades = new Diccionario(); // Informacion sobre ciudades, cada ciudad almacena su lista de solicitudes
-    private static GrafoEtiquetado mapa = new GrafoEtiquetado(); // Mapa de rutas, nodos codCiudad y etiquetas con km entre ciudades
-    private static MapeoAMuchos solicitudes = new MapeoAMuchos(); // MapeoAMuchos (Dominio: codOrigen+codDestino, Rangos: Solicitudes)
+    private static GrafoEtiquetado mapa = new GrafoEtiquetado(); // Mapa de rutas, nodos (int) codCiudad y (double) etiquetas con km entre ciudades
+    private static MapeoAMuchos solicitudes = new MapeoAMuchos(); // MapeoAMuchos (Dominio: (String) codOrigen+codDestino, Rangos: Lista de Solicitudes)
     private static HashMap<String, Cliente> clientes = new HashMap<String, Cliente>(); // HashMap de clientes (clave con su objeto Cliente)
 
     public static void menu() throws FileNotFoundException, IOException {
@@ -106,7 +106,9 @@ public class MudanzasCompartidas {
                     break;
             }            
         } while (opcion != 0);
-        io.escribir("EJECICIÓN FINALIZADA.");
+        io.escribir("ESTADO FINAL DEL SISTEMA:");
+        io.escribir(ciudades.toString()+"\n"+mapa.toString()+"\n"+clientes.toString()+"\n"+solicitudes.toString());
+        io.escribir("EJECUCIÓN FINALIZADA.");
     }
 
     public static void cargaInicial() {
@@ -1682,7 +1684,238 @@ public class MudanzasCompartidas {
     }
 
     public static void verificarViaje() {
-        
+        int opcion = 0;
+        do {
+            System.out.println("---------------- Verificar Viaje ----------------");
+            System.out.println("    1. Solicitudes de A a B y espacio necesario para los mismos.");
+            System.out.println("    2. Verificar espacio libre para envio de A a B. Con el restante, y solicitudes posibles a ciudades intermedias de A a B. Camino más corto en km.");
+            System.out.println("    3. Verificar \"camino perfecto\"."); 
+            
+            System.out.println("--------------------------------------");
+            System.out.println("    0. Atras");
+            System.out.println("--------------------------------------");
+            System.out.print("Ingrese una opción: ");
+            opcion = sc.nextInt();
+            sc.nextLine();
+
+            switch(opcion) {
+                case 1:
+                    verificarEspacioNecesario();
+                    break;
+                case 2:
+                    verificarSolicitudesIntermedias();
+                    break;
+                case 3:
+                    verificarCaminoPerfecto();
+                    break;
+                default:
+                    System.out.println("Valor ingresado no es válido.");
+                    break;
+            }
+            clearTerminal();
+        } while(opcion != 0);     
+    }
+
+    public static void verificarEspacioNecesario() {
+        int codOrigen = -1;
+        int codDestino = -1;
+        double espacio = 0;
+        Lista pedidos = new Lista();
+        boolean flag = false;
+        do {
+            System.out.print("Ingrese el codigo postal de la ciudad origen (Ingrese un numero menor o igual a 0 para salir): ");
+            codOrigen = sc.nextInt();
+            sc.nextLine();
+            if (codOrigen > 0) {
+                flag = ciudades.existeClave(codOrigen); 
+                if (flag) {
+                    do {
+                        System.out.print("Ingrese el codigo postal de la ciudad destino (Ingrese un numero menor o igual a 0 para salir): ");
+                        codDestino = sc.nextInt();
+                        sc.nextLine();
+                        if (codDestino > 0) {
+                            flag = ciudades.existeClave(codDestino);
+                            if (flag) { 
+                                pedidos = solicitudes.obtenerValores(codOrigen+""+codDestino);
+                                if(!pedidos.esVacia()) {                                    
+                                    for(int i = 1; i <= pedidos.longitud(); i++) {
+                                        espacio += ((Solicitud) pedidos.recuperar(i)).getMetrosCubicos();
+                                    }                                    
+                                    io.escribir("SE CONSULTÓ ESPACIO NECESARIO PARA SOLICITUDES ENTRE "+codOrigen+" Y "+codDestino+": "+espacio+"m^3");
+                                    System.out.println("---------------- Solicitudes ("+codOrigen+" <-> "+codDestino+") ----------------");
+                                    listar(pedidos);
+                                    System.out.println("Espacio necesario en el camión: "+espacio+" m^3.");
+                                } else {
+                                    System.out.println("No hay pedidos entre "+codOrigen+" y "+codDestino+".");
+                                }
+                                System.out.print("Presione enter para salir: ");
+                                sc.nextLine();
+                                        
+                            }   
+                        } else {
+                            System.out.println("No existe ciudad con codigo ingresado.");
+                        }
+                        
+                    } while(!flag && codDestino > 0);
+                } else {
+                    System.out.println("No existe ciudad con codigo ingresado.");
+                }
+            }
+        } while(!flag && codOrigen > 0);
+    }
+
+    public static void verificarSolicitudesIntermedias() {
+        int codOrigen = -1;
+        int codDestino = -1;
+        double espacio = 0;
+        double libre = 0;
+        Lista pedidos = new Lista();
+        boolean flag = false;
+        do {
+            System.out.print("Ingrese el codigo postal de la ciudad origen (Ingrese un numero menor o igual a 0 para salir): ");
+            codOrigen = sc.nextInt();
+            sc.nextLine();
+            if (codOrigen > 0) {
+                flag = ciudades.existeClave(codOrigen); 
+                if (flag) {
+                    do {
+                        System.out.print("Ingrese el codigo postal de la ciudad destino (Ingrese un numero menor o igual a 0 para salir): ");
+                        codDestino = sc.nextInt();
+                        sc.nextLine();
+                        if (codDestino > 0) {
+                            flag = ciudades.existeClave(codDestino);
+                            if (flag) { 
+
+                                System.out.print("Ingrese capacidad del camion en m^3: ");
+                                espacio = sc.nextDouble();
+                                sc.nextLine();
+
+                                pedidos = solicitudes.obtenerValores(codOrigen+""+codDestino);
+
+                                double ocupado = 0;
+                                for(int i = 1; i <= pedidos.longitud(); i++) {
+                                    ocupado += ((Solicitud) pedidos.recuperar(i)).getMetrosCubicos();
+                                }
+                                libre = espacio - ocupado;
+                                
+                                System.out.println("---------------- Solicitudes ("+codOrigen+" <-> "+codDestino+") ----------------");
+                                listar(pedidos);
+                                System.out.println("Se encuentran "+ocupado+" m^3 ocupados ("+libre+" m^3 libres).");
+                                
+                                if (libre > 0) { //Si hay espacio libre
+                                    Lista caminoCorto = mapa.caminoMasCortoEtiqueta(codOrigen, codDestino);
+                                    System.out.println("---------------- Camino más corto en km considerado ----------------");
+                                    listar(caminoCorto);
+
+                                    Lista posiblesSoli = new Lista();                                    
+                                    int codAux1 = 0, codAux2 = 0 ;
+
+                                    int i = 1;
+                                    while (i <= caminoCorto.longitud() && flag) { // Hasta listar toda solicitud desde i u ocupar todo el espacio
+                                        codAux1 = (int) caminoCorto.recuperar(i);
+                                        int j = i + 1;
+                                        while (j <= caminoCorto.longitud() && flag) { // Por toda solicitud con origen en i u ocupar todo el espacio
+                                            codAux2 = (int) caminoCorto.recuperar(j);
+                                            if (codOrigen != codAux1 || codDestino != codAux2) {
+                                                Lista solicitudesIntermedias = solicitudes.obtenerValores(codAux1+""+codAux2); // obtengo solicitudes
+                                                int k = 1;
+                                                while (k <= solicitudesIntermedias.longitud() && flag) {
+                                                    Solicitud soliAux = (Solicitud) (solicitudesIntermedias.recuperar(k));
+                                                    flag = libre - soliAux.getMetrosCubicos() > 0;
+                                                    if (flag) {
+                                                        libre = libre - soliAux.getMetrosCubicos();
+                                                        posiblesSoli.insertar(soliAux, posiblesSoli.longitud()+1);
+                                                    }
+                                                    k++;
+                                                }
+                                            }
+                                            j++;
+                                        }
+                                        i++;
+                                    }
+                                    io.escribir("SE VERIFICÓ SOLICITUDES INTERMEDIAS ENTRE "+codOrigen+" Y "+codDestino+" CON CAPACIDAD "+espacio+" m^3: "+posiblesSoli.toString()+".");
+                                    
+                                    System.out.println("---------------- Solicitudes Intermedias Posibles ("+codOrigen+" <-> "+codDestino+") con "+libre+" m^3 libre ----------------");
+                                    if (!posiblesSoli.esVacia()) {
+                                        listar(posiblesSoli);
+                                    } else {
+                                        System.out.println("Sin solicitudes intermedias posibles.");
+                                    }
+                                    
+                                }
+                            
+                                System.out.print("Presione enter para salir: ");
+                                sc.nextLine();
+                            }   
+                        } else {
+                            System.out.println("No existe ciudad con codigo ingresado.");
+                        }
+                        
+                    } while(!flag && codDestino > 0);
+                } else {
+                    System.out.println("No existe ciudad con codigo ingresado.");
+                }
+            }
+        } while(!flag && codOrigen > 0);
+
+    }
+
+    public static void verificarCaminoPerfecto() {
+        Lista camino = new Lista();
+        double espacio = -1;
+        int codPostal = -1;
+        int codOrigen = -1;
+        int codDestino = -1;
+        boolean flag = false;
+        String respuesta = "";
+
+        System.out.println("Se solicitara codigos postales de ciudades a verificar \"camino perfecto\".");
+        do {
+            System.out.print("Ingrese codigo postal de una ciudad (0 para proseguir, menor a 0 para cancelar): ");
+            codPostal = sc.nextInt();
+            sc.nextLine();
+            flag = codPostal <= 0;
+            if (!flag) {
+                camino.insertar(codPostal, camino.longitud()+1);
+            } else {
+                if (codPostal == 0) { // Sigue ejecucion
+
+                    System.out.print("Ingrese capacidad del camion en m^3: ");
+                    espacio = sc.nextDouble();
+                    sc.nextLine();
+
+                    double espacioNecesario = 0;
+                    int i = 1;                    
+                    while(i < camino.longitud() && flag && espacioNecesario <= espacio) {
+                        codOrigen = (int) camino.recuperar(i);
+                        int j = i + 1;
+                        flag = false;
+                        while(j <= camino.longitud() && !flag) {
+                            codDestino = (int) camino.recuperar(j);
+                            // Verifica que tenga solicitudes entre ciudades
+                            Lista listaRango = solicitudes.obtenerValores(codOrigen+""+codDestino);
+                            flag = mapa.existeCamino(codOrigen, codDestino) && !listaRango.esVacia(); 
+                            if(flag) {
+                                for (int k = 1; k <= listaRango.longitud(); k++) { // Suma el espacio necesario
+                                    espacioNecesario += ((Solicitud) listaRango.recuperar(k)).getMetrosCubicos();                                    
+                                }                                
+                            }
+                            j++;
+                        }
+                        i++;
+                    }
+                    
+                    respuesta = "EL CAMINO "+camino.toString()+ (flag? "": " NO")+" ES PERFECTO, CON "+espacio+" m^3 DE CAPACIDAD"+(flag? ": SON NECESARIOS "+espacioNecesario+" m^3.": ".");
+
+                    io.escribir("SE HA VERIFICADO UN CAMINO PERFECTO: "+respuesta);
+                    System.out.println(respuesta);
+                    System.out.print("Enter para continuar.");
+                    sc.nextLine();
+                } else {
+                    System.out.println("Se canceló la operación.");
+                }
+            }
+        } while (!flag && codPostal > 0);
     }
 
     public static void clearTerminal() {
