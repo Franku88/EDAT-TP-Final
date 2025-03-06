@@ -89,7 +89,7 @@ public class GrafoEtiquetado {
         origen.setPrimerAdyacente(nuevo);
     }
 
-    public void eliminarArcos(NodoVert nodo) {
+    private void eliminarArcos(NodoVert nodo) {
         //Metodo que elimina todos los arcos enlazados a nodo (como inicio y destino)
         //Precondicion: nodo no es null
         NodoAdy ady = nodo.getPrimerAdyacente();
@@ -257,7 +257,7 @@ public class GrafoEtiquetado {
         //Metodo auxiliar, recursivamente recorre nodos de un grafo, retorna el camino mas corto desde nodo a destino
         if (nodo != null) {
             //Verifica si no supera al mas corto con la siguiente insercion (ya que no tendria sentido seguir buscando en ese punto)
-            if (camCorto.esVacia() || ((camActual.longitud()+1) < camCorto.longitud())) {
+            if (camCorto.esVacia() || ((camActual.longitud()+1) < camCorto.longitud())) { /* DEBERIA FUNCIONAR CORRECTAMENTE QUITANDO ESTA VERIFICACIÓN */
                 Object elem = nodo.getElemento();
                 camActual.insertar(elem, camActual.longitud()+1); //Inserta nodo actual (pues es recorrido)
                 if (elem.equals(destino)) { //Si encuentra destino
@@ -377,22 +377,18 @@ public class GrafoEtiquetado {
             NodoAdy ady = null;
             NodoVert auxVert = null;
             camActual.insertar(elem, camActual.longitud()+1); //Inserta nodo actual (pues es recorrido)
-            if (flag) { //Verifica que no cruze primero por el destino
-                if (elem.equals(destino)) { //Si encuentra destino
-                    Lista aux = camActual.clone();                    
+            
+            //
+            //System.out.println(camActual.toString()); // TESTING
+            //
+
+        
+            if (elem.equals(destino)) { //Si encuentra destino
+                if (flag) {
+                    Lista aux = camActual.clone();
                     resultado.insertar(aux, resultado.longitud()+1); //Clona camActual para no modificar la referencia                    
-                } else { // si no lo encuentra recorre sus adyacentes para buscar el camino
-                    ady = nodo.getPrimerAdyacente();                    
-                    while (ady != null) { //Recorro sus adyacentes (arcos)
-                        auxVert = ady.getVertice(); 
-                        //Si no fue visitado en este camino, entonces lo visita
-                        if (camActual.localizar(auxVert.getElemento()) < 0) { 
-                            resultado = caminosCruzandoIntermedioAux(ady.getVertice(), destino, intermedio, resultado, camActual, flag);
-                        }
-                        ady = ady.getSigAdyacente(); //Siguiente arco
-                    }
-                }
-            } else {
+                }                
+            } else { // si no lo encuentra recorre sus adyacentes para buscar el camino                
                 ady = nodo.getPrimerAdyacente();
                 flag = elem.equals(intermedio);
                 while (ady != null) { //Recorro sus adyacentes (arcos)
@@ -404,7 +400,8 @@ public class GrafoEtiquetado {
                     }
                     ady = ady.getSigAdyacente(); //Siguiente arco
                 }
-            }  
+            }
+            
             //Quita nodo actual (ultimo insertado) porque puede haber mas caminos que lo visiten
             camActual.eliminar(camActual.longitud());
         }        
